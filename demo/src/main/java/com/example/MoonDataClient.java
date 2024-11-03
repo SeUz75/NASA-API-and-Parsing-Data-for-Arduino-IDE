@@ -13,13 +13,12 @@ public class MoonDataClient {
     public MoonDataClient(){
         client = HttpClient.newHttpClient();
     }
-
     public String findAll(){
         try
         {
             HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api.apiverve.com/v1/moonposition?lat=37.7749&lon=-122.4194&date=11-03-2024"))  
-            .header("x-api-key", "API_KEY")
+            .uri(URI.create("https://api.apiverve.com/v1/moonposition?lat=42.1375&lon=24.7140&date=11-03-2024"))
+            .header("x-api-key", "API-KEY")
             .method("GET", HttpRequest.BodyPublishers.noBody())
             .build();
 
