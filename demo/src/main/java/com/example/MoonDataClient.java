@@ -18,7 +18,7 @@ public class MoonDataClient {
         {
             HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("https://api.apiverve.com/v1/moonposition?lat=42.1375&lon=24.7140&date=11-03-2024"))
-            .header("x-api-key", "API-KEY")
+            .header("x-api-key", "API_KEY")
             .method("GET", HttpRequest.BodyPublishers.noBody())
             .build();
 
