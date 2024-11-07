@@ -1,4 +1,4 @@
-package main.java.com.example;
+package com.example;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,7 +17,7 @@ public class MoonDataClient {
         try
         {
             HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("https://api.apiverve.com/v1/moonposition?lat=42.1375&lon=24.7140&date=11-03-2024"))
+            .uri(URI.create(BASE_URL))
             .header("x-api-key", "API_KEY")
             .method("GET", HttpRequest.BodyPublishers.noBody())
             .build();
