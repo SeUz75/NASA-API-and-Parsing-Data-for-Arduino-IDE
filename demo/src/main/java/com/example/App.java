@@ -1,6 +1,7 @@
 package com.example; 
 import org.json.JSONObject;
 import org.json.JSONStringer;
+import java.lang.Math;
 
 import com.fazecast.jSerialComm.SerialPort;
 
@@ -17,10 +18,14 @@ public class App
         //System.out.println(client.findAll());
 
         String moonposition = client.findAll();
-        float[] coordinates = dataAzimuthLantitude(moonposition);
+        double[] coordinates = dataAzimuthLantitude(moonposition);
 
-        System.out.println("Azimuth: " + coordinates[0]);
-        System.out.println("Altitude: " + coordinates[1]);
+        System.out.println("Azimuth,Lantitude cood in radians : " + coordinates[0]+","+coordinates[1]);
+
+        // But I need the coordinates to be in degrees not in radians so : 
+        double[] degrees=moonCoordInDegrees(coordinates);
+        System.out.println("Azimuth, Altitude coord in degrees : " + degrees[0]+","+degrees[1]);
+        
 
 
         //System.out.println(moonposition);
@@ -49,21 +54,36 @@ public class App
         // }
     }
 
-    public static float[] dataAzimuthLantitude(String jsonAllData){
+
+
+    // Parsing data from JSON to local double variables in my JavaProgram
+
+    public static double[] dataAzimuthLantitude(String jsonAllData){
         try{
             JSONObject jsonObject = new JSONObject(jsonAllData);
 
              // Достъп до вложените JSON обекти и извличане на данни
         JSONObject moonObject = jsonObject.getJSONObject("data").getJSONObject("moon");
-        float azimuth = moonObject.getFloat("azimuth");
-        float altitude = moonObject.getFloat("altitude");
+        double azimuth = moonObject.getDouble("azimuth");
+        double altitude = moonObject.getDouble("altitude");
 
-            float[] floatMoonPosition = new float[] {azimuth,altitude};
+            double[] doubleMoonPosition = new double[] {azimuth,altitude};
 
-            return floatMoonPosition;
+            return doubleMoonPosition;
         }catch(Exception e ){
-            System.out.println("Unfortunately your data couldnt be parsed from JSON -> String -> float because of this error : "  + e.getMessage());
+            System.out.println("Unfortunately your data couldnt be parsed from JSON -> String -> double because of this error : "  + e.getMessage());
             return null;
         }
+    }
+
+
+    // Converting from Radians to degrees. 
+    public static double[] moonCoordInDegrees(double[] coord){
+        double[] degrees= new double[2];
+
+        for(int i=0;i<coord.length;i++){
+            degrees[i] = coord[i]*(180/Math.PI); // Because of Math.PI I will need to change my variable from float to double....
+        }
+        return degrees;
     }
 }
