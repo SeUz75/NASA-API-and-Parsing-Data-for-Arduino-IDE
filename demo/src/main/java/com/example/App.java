@@ -1,6 +1,8 @@
 package com.example; 
 import org.json.JSONObject;
 import org.json.JSONStringer;
+
+import java.io.InputStream;
 import java.lang.Math;
 
 import com.fazecast.jSerialComm.SerialPort;
@@ -28,30 +30,58 @@ public class App
         
 
 
-        //System.out.println(moonposition);
+        // //System.out.println(moonposition);
+
+        // SerialPort[] ports = SerialPort.getCommPorts();
+        // System.out.println("Available ports:");
+        // for (SerialPort port : ports) {
+        //     System.out.println(port.getSystemPortName());
+        // } //TRYING TO BEDUG TO SEE WHICH PORTS ARE AVAILABLE
 
         // Specify your port name  FOR EVERY OS, FOR WINDOWS COM3, FOR MACOS /dev/tty.usbmodem14101, FOR LINUX /dev/tty.USB0
-        String portDescriptor = "/dev/tty.usbmodem14101";
-
+        String portDescriptor = "COM3";
 
         // Check if the port exists
-        // SerialPort comPort = SerialPort.getCommPort(portDescriptor);
-        // if(comPort == null){
-        //     System.out.println("Specified port : " + portDescriptor + " is not available");
-        //     return;
-        // }
+        SerialPort comPort = SerialPort.getCommPort(portDescriptor);
+        comPort.setComPortParameters(9600, 8, 1, 0);
+        
+
+        if (!comPort.openPort()) {
+            System.out.println("Failed to open port: " + portDescriptor);
+            if (comPort.getLastErrorCode() != 0) {
+                System.out.println("Error Code: " + comPort.getLastErrorCode());
+            }
+            return;
+        }
 
 
+        String dataToSend = degrees[0]+","+degrees[1]+"\n";
+        try{
+            Thread.sleep(1000); // Wait 1 second before sending data
+            comPort.getOutputStream().write(dataToSend.getBytes());
+            comPort.getOutputStream().flush();
+            System.out.println("Data send to arduino : " + dataToSend);
+
+        }catch(Exception e){
+            System.out.println("Failed to send data, error : "  + e.getMessage());
+        }finally{
+            comPort.closePort();
+        }
 
 
-        // Replace with your Arduino's COM port(Like "COM3" on Windows,"/dev/ttyUSB0" on Linux)
-        // comPort.setBaudRate(9600);
-        // if (comPort.openPort()) {
-        //     System.out.println("Port is OPEN!");
-        // } else {
-        //     System.out.println("Failed to open port. Ensure the device is connected and available.");
-        //     return;
-        // }
+        InputStream inputStream = comPort.getInputStream();
+        try{
+            int availableBytes = inputStream.available();
+            if (availableBytes > 0) {
+                byte[] readBuffer = new byte[availableBytes];
+                inputStream.read(readBuffer);
+                String response = new String(readBuffer);
+                System.out.println("Arduino responded: " + response);
+            }
+        }catch(Exception e){
+            System.out.println("Failed to receive data from the arduino.");
+        }
+
     }
 
 

@@ -18,7 +18,7 @@ public class MoonDataClient {
         {
             HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL))
-            .header("x-api-key", "API_KEY")
+            .header("x-api-key", "API")
             .method("GET", HttpRequest.BodyPublishers.noBody())
             .build();
 
