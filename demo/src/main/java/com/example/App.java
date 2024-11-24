@@ -2,7 +2,10 @@ package com.example;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.Math;
 
 import com.fazecast.jSerialComm.SerialPort;
@@ -17,9 +20,21 @@ public class App
     {
         
         MoonDataClient client = new MoonDataClient();
-        //System.out.println(client.findAll());
+        // Getting my API answer for my CURRENT POSITION !!! 
+        // Specify your port name  FOR EVERY OS, FOR WINDOWS COM3, FOR MACOS /dev/tty.usbmodem14101, FOR LINUX /dev/tty.USB0
+        String portDescriptor = "COM3";
 
-        String moonposition = client.findAll();
+        // If my gps was WORKING I WOULD PROBABLY GET DATA FOR MY COORDS AND THE PROGRAM SHOULD RUN ! 
+        // WAITING for new GPS MODULE !
+        String gpsData = client.getData(portDescriptor);
+
+         // Use hardcoded coordinates if GPS data is null or invalid
+        if (gpsData == null || gpsData.isEmpty()) {
+            System.out.println("GPS data is null or invalid. Using hardcoded coordinates...");
+            gpsData = "42.1354,24.7453"; // Hardcoded coordinates for Plovdiv, Bulgaria
+        }
+        
+        String moonposition = client.findMoonData(gpsData);
         double[] coordinates = dataAzimuthLantitude(moonposition);
 
         System.out.println("Azimuth,Lantitude cood in radians : " + coordinates[0]+","+coordinates[1]);
@@ -27,69 +42,51 @@ public class App
         // But I need the coordinates to be in degrees not in radians so : 
         double[] degrees=moonCoordInDegrees(coordinates);
         System.out.println("Azimuth, Altitude coord in degrees : " + degrees[0]+","+degrees[1]);
+
+
+        String dataToSend = degrees[0]+","+degrees[1]+"\n";
+        sendData(dataToSend, portDescriptor);
+
         
+    }
 
+    // |----------------------------------------------------- SENDING MOON LOCATION !!! -----------------------------------------------------|
 
-        // //System.out.println(moonposition);
+    public static void sendData(String dataToSend, String portDescriptor){
+         // Check if the port exists
+         SerialPort comPort = SerialPort.getCommPort(portDescriptor);
 
-        // SerialPort[] ports = SerialPort.getCommPorts();
-        // System.out.println("Available ports:");
-        // for (SerialPort port : ports) {
-        //     System.out.println(port.getSystemPortName());
-        // } //TRYING TO BEDUG TO SEE WHICH PORTS ARE AVAILABLE
-
-        // Specify your port name  FOR EVERY OS, FOR WINDOWS COM3, FOR MACOS /dev/tty.usbmodem14101, FOR LINUX /dev/tty.USB0
-        String portDescriptor = "COM3";
-
-        // Check if the port exists
-        SerialPort comPort = SerialPort.getCommPort(portDescriptor);
-        comPort.setComPortParameters(9600, 8, 1, 0);
-        
-
+         comPort.openPort();
         if (!comPort.openPort()) {
-            System.out.println("Failed to open port: " + portDescriptor);
+            System.out.println("Failed to open port: SEND DATA " + portDescriptor);
             if (comPort.getLastErrorCode() != 0) {
                 System.out.println("Error Code: " + comPort.getLastErrorCode());
             }
             return;
         }
+        try {
+             // Delay to let Arduino initialize
+             Thread.sleep(2000);
 
-
-        String dataToSend = degrees[0]+","+degrees[1]+"\n";
-        try{
-            Thread.sleep(1000); // Wait 1 second before sending data
-            comPort.getOutputStream().write(dataToSend.getBytes());
-            comPort.getOutputStream().flush();
-            System.out.println("Data send to arduino : " + dataToSend);
-
+            // Send data to Arduino
+            OutputStream out = comPort.getOutputStream();
+            out.write(dataToSend.getBytes());
+            out.flush();
+            System.out.println("Sent to Arduino: " + dataToSend);
         }catch(Exception e){
-            System.out.println("Failed to send data, error : "  + e.getMessage());
+            System.out.println("Failed to send data because : " + e.getMessage());
         }finally{
             comPort.closePort();
         }
-
-
-        InputStream inputStream = comPort.getInputStream();
-        try{
-            int availableBytes = inputStream.available();
-            if (availableBytes > 0) {
-                byte[] readBuffer = new byte[availableBytes];
-                inputStream.read(readBuffer);
-                String response = new String(readBuffer);
-                System.out.println("Arduino responded: " + response);
-            }
-        }catch(Exception e){
-            System.out.println("Failed to receive data from the arduino.");
-        }
-
     }
 
-
-
-    // Parsing data from JSON to local double variables in my JavaProgram
+    // |----------------------------------------------------- Parsing data from JSON to local double variables in my JavaProgram !!! -----------------------------------------------------|
 
     public static double[] dataAzimuthLantitude(String jsonAllData){
         try{
+            if(jsonAllData == null){
+                System.out.println("Bruh jsonAllData is null ");
+            }
             JSONObject jsonObject = new JSONObject(jsonAllData);
 
              // Достъп до вложените JSON обекти и извличане на данни
@@ -107,7 +104,7 @@ public class App
     }
 
 
-    // Converting from Radians to degrees. 
+    // |----------------------------------------------------- Converting from Radians to degrees. -----------------------------------------------------|
     public static double[] moonCoordInDegrees(double[] coord){
         double[] degrees= new double[2];
 
