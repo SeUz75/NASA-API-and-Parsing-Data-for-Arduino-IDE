@@ -22,7 +22,7 @@ public class App
         MoonDataClient client = new MoonDataClient();
         // Getting my API answer for my CURRENT POSITION !!! 
         // Specify your port name  FOR EVERY OS, FOR WINDOWS COM3, FOR MACOS /dev/tty.usbmodem14101, FOR LINUX /dev/tty.USB0
-        String portDescriptor = "COM3";
+        String portDescriptor = "/dev/cu.usbmodem1101";
 
         // If my gps was WORKING I WOULD PROBABLY GET DATA FOR MY COORDS AND THE PROGRAM SHOULD RUN ! 
         // WAITING for new GPS MODULE !
@@ -65,8 +65,6 @@ public class App
             return;
         }
         try {
-             // Delay to let Arduino initialize
-             Thread.sleep(2000);
 
             // Send data to Arduino
             OutputStream out = comPort.getOutputStream();

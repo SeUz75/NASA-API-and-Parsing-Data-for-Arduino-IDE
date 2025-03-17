@@ -41,7 +41,7 @@ public class MoonDataClient {
             // Create and send the HTTP request
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(dynamicURL))
-                .header("x-api-key", "api_key")
+                .header("x-api-key", "API-KEY")
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
 
