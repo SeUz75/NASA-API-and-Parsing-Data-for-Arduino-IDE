@@ -22,7 +22,7 @@ public class App
         MoonDataClient client = new MoonDataClient();
         // Getting my API answer for my CURRENT POSITION !!! 
         // Specify your port name  FOR EVERY OS, FOR WINDOWS COM3, FOR MACOS /dev/tty.usbmodem14101, FOR LINUX /dev/tty.USB0
-        String portDescriptor = "/dev/cu.usbmodem1101";
+        String portDescriptor = "COM4";
 
         // If my gps was WORKING I WOULD PROBABLY GET DATA FOR MY COORDS AND THE PROGRAM SHOULD RUN ! 
         // WAITING for new GPS MODULE !
@@ -46,15 +46,24 @@ public class App
 
         String dataToSend = degrees[0]+","+degrees[1]+"\n";
         sendData(dataToSend, portDescriptor);
-
         
-    }
+
+        // Read response from Arduino
+        String arduinoResponse = client.getData(portDescriptor);
+        if (arduinoResponse == null) {
+            System.out.println("Arduino didn't receive anything.");
+        } else {
+            System.out.println("Arduino read: " + arduinoResponse);
+        }  
+    }  
 
     // |----------------------------------------------------- SENDING MOON LOCATION !!! -----------------------------------------------------|
 
     public static void sendData(String dataToSend, String portDescriptor){
          // Check if the port exists
          SerialPort comPort = SerialPort.getCommPort(portDescriptor);
+         comPort.setComPortParameters(9600, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
+         comPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 1000, 0);
 
          comPort.openPort();
         if (!comPort.openPort()) {
@@ -65,12 +74,20 @@ public class App
             return;
         }
         try {
-
-            // Send data to Arduino
-            OutputStream out = comPort.getOutputStream();
-            out.write(dataToSend.getBytes());
-            out.flush();
-            System.out.println("Sent to Arduino: " + dataToSend);
+            String degreeString =dataToSend + "\n";
+            byte[] buffer = degreeString.getBytes();
+            comPort.writeBytes(buffer,buffer.length);
+            System.out.println("Data was SENT: " + buffer);
+            System.out.print("Data was buffer in bit:");
+            for(byte bit : buffer){
+                System.out.print(bit);
+            }
+            // // Send data to Arduino
+            // OutputStream out = comPort.getOutputStream();
+            // out.write((dataToSend +"\n").getBytes());
+            // out.flush();
+            // System.out.println("Sent to Arduino: " + dataToSend);
+            // out.close();
         }catch(Exception e){
             System.out.println("Failed to send data because : " + e.getMessage());
         }finally{
@@ -81,6 +98,7 @@ public class App
     // |----------------------------------------------------- Parsing data from JSON to local double variables in my JavaProgram !!! -----------------------------------------------------|
 
     public static double[] dataAzimuthLantitude(String jsonAllData){
+        double[] doubleMoonPosition= new double[2];
         try{
             if(jsonAllData == null){
                 System.out.println("Bruh jsonAllData is null ");
@@ -92,12 +110,14 @@ public class App
         double azimuth = moonObject.getDouble("azimuth");
         double altitude = moonObject.getDouble("altitude");
 
-            double[] doubleMoonPosition = new double[] {azimuth,altitude};
+             doubleMoonPosition = new double[] {azimuth,altitude};
 
             return doubleMoonPosition;
         }catch(Exception e ){
             System.out.println("Unfortunately your data couldnt be parsed from JSON -> String -> double because of this error : "  + e.getMessage());
-            return null;
+            doubleMoonPosition[0] = 1.2;
+            doubleMoonPosition[1] =2.3;
+            return doubleMoonPosition;
         }
     }
 

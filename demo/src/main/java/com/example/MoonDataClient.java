@@ -41,7 +41,7 @@ public class MoonDataClient {
             // Create and send the HTTP request
             HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(dynamicURL))
-                .header("x-api-key", "API-KEY")
+                .header("x-api-key", "")
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
 
@@ -75,9 +75,6 @@ public class MoonDataClient {
                return null;
            }
            try {
-             // Delay to let Arduino initialize
-            Thread.sleep(2000);
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(comPort.getInputStream()));
             String receivedData = reader.readLine();
 
