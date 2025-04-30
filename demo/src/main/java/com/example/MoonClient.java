@@ -18,8 +18,8 @@ public class MoonClient {
         // HTTPS REQUEST .................... 
         // BUT FIRST IMMA NEED TO DO THE FIRST SERIAL COMMUNICATION WHICH IS 
         // READING THE GPS COORDINATES FROM MY GPS NEO 6Y MODULE
-        private String apiKey = "apiID";
-        private String apiSecret = "apiKey";
+        private String apiKey = "API-ID";
+        private String apiSecret = "API-ID";
         
 
     public String moonPosition(String mylocation) {
@@ -49,8 +49,9 @@ public class MoonClient {
         String encodedAuth = Base64.getEncoder().encodeToString(userPass.getBytes(StandardCharsets.UTF_8));
 
         // Construct the full URL with query parameters
+
         String urlStr = String.format(
-            "https://api.astronomyapi.com/api/v2/bodies/positions/sun?" +
+            "https://api.astronomyapi.com/api/v2/bodies/positions/moon?" +
             "latitude=%s&longitude=%s&elevation=%s&from_date=%s&to_date=%s&time=%s",
             latitude, longitude, elevation, fromDate, toDate, time
         );
@@ -101,11 +102,15 @@ public class MoonClient {
 
                 System.out.println("Port opened : "  + portDescriptor);
                 // Give the Arduino time to reset after connection
-                Thread.sleep(2000);
-
+                String receivedData = "";
                 // Read data from serial port
+                //  IMPORTANT FOR CYCLE !!! IMPROVES VERY MUCH THE SERIAL COMMUNICATION ! CORRECT THE GPS COORDINATES ! 
+                for(int i =0; i<=2; i++){
+                Thread.sleep(2000);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(arduinoPort.getInputStream()));
-                String receivedData = reader.readLine();
+                receivedData = reader.readLine();
+                System.out.println("Data received from arduino is : "  + receivedData);
+                }
 
                 if(receivedData !=null){
                     System.out.println("Data received from arduino is : "  + receivedData);
@@ -117,7 +122,7 @@ public class MoonClient {
                 System.out.println("Error reading from serial port: " + e.getMessage());
                 String myLoc = "42.1354,24.7453";
                 System.out.println("Using hard coded coordinates : " + myLoc );
-                e.printStackTrace();
+               // e.printStackTrace();
                 return myLoc;
             }finally{
                 arduinoPort.closePort();
