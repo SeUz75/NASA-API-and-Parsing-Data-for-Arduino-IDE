@@ -2,24 +2,20 @@ package com.example;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.util.Base64;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
-import com.fazecast.jSerialComm.*;
 
 public class MoonClient {
         // HTTPS REQUEST .................... 
         // BUT FIRST IMMA NEED TO DO THE FIRST SERIAL COMMUNICATION WHICH IS 
         // READING THE GPS COORDINATES FROM MY GPS NEO 6Y MODULE
-        private String apiKey = "API-ID";
-        private String apiSecret = "API-ID";
+        private String apiKey = "API_KEY";
+        private String apiSecret = "API_ID";
         
 
     public String moonPosition(String mylocation) {
@@ -84,50 +80,4 @@ public class MoonClient {
         return "Error: " + e.getMessage();
     }
 }
-
-        
-        public String getDataMyLocation(String portDescriptor){
-            SerialPort arduinoPort = SerialPort.getCommPort(portDescriptor);
-            try{
-                // Configure Port
-                arduinoPort.setComPortParameters(9600, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
-                arduinoPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 1000, 0);
-                if(!arduinoPort.openPort()){
-                    System.out.println("Failed to open port: " + portDescriptor);
-                    if (arduinoPort.getLastErrorCode() != 0) {
-                        System.out.println("Error Code: " + arduinoPort.getLastErrorCode());
-                    }
-                    return null;
-                }
-
-                System.out.println("Port opened : "  + portDescriptor);
-                // Give the Arduino time to reset after connection
-                String receivedData = "";
-                // Read data from serial port
-                //  IMPORTANT FOR CYCLE !!! IMPROVES VERY MUCH THE SERIAL COMMUNICATION ! CORRECT THE GPS COORDINATES ! 
-                for(int i =0; i<=2; i++){
-                Thread.sleep(2000);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(arduinoPort.getInputStream()));
-                receivedData = reader.readLine();
-                System.out.println("Data received from arduino is : "  + receivedData);
-                }
-
-                if(receivedData !=null){
-                    System.out.println("Data received from arduino is : "  + receivedData);
-                    return receivedData;
-                }
-
-
-            }catch(Exception e){
-                System.out.println("Error reading from serial port: " + e.getMessage());
-                String myLoc = "42.1354,24.7453";
-                System.out.println("Using hard coded coordinates : " + myLoc );
-               // e.printStackTrace();
-                return myLoc;
-            }finally{
-                arduinoPort.closePort();
-                System.out.println("Port closed: " + portDescriptor); // CLOSING PORT ! REALLY IMPORTANT LINE OF CODE
-            }
-            return null;
-        }
 }
